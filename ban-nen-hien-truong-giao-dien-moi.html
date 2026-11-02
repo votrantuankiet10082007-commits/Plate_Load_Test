@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng Thí nghiệm Bàn nén Hiện trường (TCVN 9354:2012)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Times New Roman"', 'Times', 'serif'],
+                        sans: ['"Times New Roman"', 'Times', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            font-family: "Times New Roman", Times, serif !important;
+        }
+
+        body {
+            background-color: #f4f6faff;
+            color: #f1f5f9;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+
+
+        /* Giao diện trung tính, giống phần mềm kỹ thuật hơn là dashboard AI */
+        body {
+            background: #f1f0ec !important;
+            color: #30363a !important;
+        }
+
+        header {
+            background: #343a3e !important;
+            border-color: #343a3e !important;
+            box-shadow: 0 2px 8px rgba(25, 30, 32, .10) !important;
+        }
+
+        main {
+            max-width: 1440px;
+        }
+
+        .bg-slate-900,
+        .bg-slate-900\\/90 {
+            background-color: #ffffff !important;
+        }
+
+        .bg-slate-950,
+        .bg-slate-950\\/80,
+        .bg-slate-950\\/90 {
+            background-color: #f4f3ef !important;
+        }
+
+        .bg-slate-800 {
+            background-color: #e8e6e0 !important;
+        }
+
+        .bg-slate-700 {
+            background-color: #d9d6ce !important;
+        }
+
+        .text-white {
+            color: #ffffff !important;
+        }
+
+        header .text-white {
+            color: #ffffff !important;
+        }
+
+        .text-slate-100,
+        .text-slate-200,
+        .text-slate-300 {
+            color: #ffffff !important;
+        }
+
+        .text-slate-400,
+        .text-slate-500 {
+            color: #ffffff !important;
+        }
+
+        .border-slate-800,
+        .border-slate-700 {
+            border-color: #d9d6ce !important;
+        }
+
+        .divide-slate-800\\/60> :not([hidden])~ :not([hidden]) {
+            border-color: #e6e3dc !important;
+        }
+
+        .bg-amber-600 {
+            background-color: #9a7047 !important;
+        }
+
+        .hover\\:bg-amber-500:hover {
+            background-color: #805b39 !important;
+        }
+
+        .text-amber-400,
+        .text-amber-500 {
+            color: #967047 !important;
+        }
+
+        .text-amber-300 {
+            color: #a17d55 !important;
+        }
+
+        .border-amber-800,
+        .border-amber-700 {
+            border-color: #cbb89f !important;
+        }
+
+        .bg-amber-950\\/60,
+        .bg-amber-950\\/40 {
+            background-color: #f3eee7 !important;
+        }
+
+        .text-amber-200 {
+            color: #765638 !important;
+        }
+
+        .bg-red-950\\/40 {
+            background-color: #f6eeee !important;
+        }
+
+        .text-red-400,
+        .text-red-200 {
+            color: #9b5c55 !important;
+        }
+
+        .border-red-800 {
+            border-color: #dfc7c3 !important;
+        }
+
+        .bg-emerald-950\\/40 {
+            background-color: #edf2ed !important;
+        }
+
+        .text-emerald-400,
+        .text-emerald-300 {
+            color: #58765f !important;
+        }
+
+        .border-emerald-800 {
+            border-color: #c8d7ca !important;
+        }
+
+        .shadow-xl,
+        .shadow-2xl {
+            box-shadow: 0 2px 10px rgba(35, 40, 42, .07) !important;
+        }
+
+        input,
+        select,
+        button {
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+
+        .diagram-legend {
+            line-height: 1.5;
+        }
+
+        .diagram-legend strong {
+            color: #8b6845;
+        }
+
+        @media (max-width: 640px) {
+            .diagram-legend .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block !important;
+            }
+
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .print-card {
+                border: 1px solid #cbd5e1 !important;
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-amber-600 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-600 p-2.5 rounded-xl text-white shadow-lg shadow-amber-900/40">
+                    <i class="fa-solid fa-layer-group text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg sm:text-xl leading-tight tracking-wide text-white">MÔ PHỎNG THÍ NGHIỆM
+                        BÀN NÉN HIỆN TRƯỜNG</h1>
+                    <p class="text-xs text-amber-400 font-medium">Tiêu chuẩn Việt Nam TCVN 9354:2012 &amp; Giáo trình
+                        Địa chất công trình</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="toggleTheoryModal()"
+                    class="flex items-center space-x-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-lg border border-slate-700 transition font-semibold">
+                    <i class="fa-solid fa-book-open text-amber-400"></i>
+                    <span class="hidden sm:inline">Giáo Trình &amp; Công Thức</span>
+                </button>
+                <button onclick="window.print()"
+                    class="flex items-center space-x-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg shadow-md transition font-semibold">
+                    <i class="fa-solid fa-print"></i>
+                    <span>In Báo Cáo</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Sidebar Inputs & Controls (4 cols) -->
+        <aside class="lg:col-span-4 space-y-5 no-print">
+
+            <!-- Soil Parameters Inputs -->
+            <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-4 backdrop-blur">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-bold text-white flex items-center">
+                        <i class="fa-solid fa-flask text-amber-500 mr-2"></i>
+                        Thông Số Đất Nền &amp; Hố Đào
+                    </h2>
+                    <span
+                        class="text-[11px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded border border-slate-700 font-semibold">TCVN
+                        9354:2012</span>
+                </div>
+
+                <!-- Soil Presets -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Mẫu Đất Địa Tầng Mẫu</label>
+                    <select id="soil-preset-select"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl text-xs p-2.5 text-slate-200 focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="soft_clay">Đất sét dẻo chảy (Soft Clay)</option>
+                        <option value="stiff_clay" selected>Đất sét pha dẻo cứng (Stiff Clay)</option>
+                        <option value="loose_sand">Đất cát bụi rời (Loose Sand)</option>
+                        <option value="medium_sand">Đất cát thô chặt vừa (Medium Sand)</option>
+                        <option value="gravel">Đất cấp phối đá dăm / Sạn sỏi (Gravel)</option>
+                    </select>
+                </div>
+
+                <!-- Soil Editable Fields Grid -->
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Dung trọng &gamma; (kN/m³)</label>
+                        <input type="number" id="input-gamma" step="0.5" min="10" max="25" value="18.5"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-bold focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Lực dính C (kPa)</label>
+                        <input type="number" id="input-cohesion" step="1" min="0" max="150" value="22"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-bold focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Góc ma sát &phi; (°)</label>
+                        <input type="number" id="input-phi" step="1" min="0" max="45" value="16"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-bold focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Hệ số nở hông &mu;</label>
+                        <input type="number" id="input-mu" step="0.01" min="0.1" max="0.45" value="0.35"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 font-bold focus:border-amber-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Pit & Plate Setup -->
+                <div class="pt-2 border-t border-slate-800 grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Chiều sâu hố h (m)</label>
+                        <input type="number" id="input-h" step="0.1" min="0.5" max="5.0" value="1.5"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-amber-400 font-bold focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-300 mb-1">Đường kính D (cm)</label>
+                        <select id="select-diameter"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-amber-400 font-bold focus:border-amber-500 outline-none">
+                            <option value="30">30 cm (706 cm²)</option>
+                            <option value="50">50 cm (1963 cm²)</option>
+                            <option value="60">60 cm (2827 cm²)</option>
+                            <option value="75.6" selected>75.6 cm (4500 cm²)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Control Panel -->
+            <div class="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-xl space-y-4 backdrop-blur">
+                <h2 class="text-sm font-bold text-white flex items-center border-b border-slate-800 pb-3">
+                    <i class="fa-solid fa-gauge-high text-amber-500 mr-2"></i>
+                    Điều Khiển Cấp Áp Lực Nén P (kPa)
+                </h2>
+
+                <!-- Current Load Readout -->
+                <div
+                    class="bg-slate-950 rounded-2xl p-4 text-center border border-slate-800 relative overflow-hidden shadow-inner">
+                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Áp Lực Tác Dụng Hiện
+                        Tại</span>
+                    <div class="text-3xl sm:text-4xl font-extrabold text-amber-400 my-1 tracking-tight">
+                        <span id="current-load-text">0</span> <span
+                            class="text-sm font-normal text-slate-400">kPa</span>
+                    </div>
+                    <div
+                        class="text-xs text-slate-300 flex justify-center items-center space-x-4 pt-2 border-t border-slate-800/80 mt-2">
+                        <span>Độ lún S: <strong id="current-settlement-text" class="text-emerald-400 font-bold">0.00
+                                mm</strong></span>
+                    </div>
+                </div>
+
+                <!-- Load Step Buttons -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-300">Gia Tải Theo Cấp Nhanh (kPa)</label>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button onclick="applyLoadStep(25)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">25</button>
+                        <button onclick="applyLoadStep(50)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">50</button>
+                        <button onclick="applyLoadStep(100)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">100</button>
+                        <button onclick="applyLoadStep(150)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">150</button>
+                        <button onclick="applyLoadStep(200)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">200</button>
+                        <button onclick="applyLoadStep(250)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">250</button>
+                        <button onclick="applyLoadStep(300)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">300</button>
+                        <button onclick="applyLoadStep(400)"
+                            class="bg-slate-800 hover:bg-amber-600 hover:text-white border border-slate-700 text-slate-200 rounded-lg py-2 text-xs font-bold transition">400</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="adjustLoad(25)"
+                        class="flex items-center justify-center space-x-1.5 bg-amber-950/60 text-amber-400 hover:bg-amber-900/60 border border-amber-800 py-2.5 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Tăng +25 kPa</span>
+                    </button>
+                    <button onclick="adjustLoad(-25)"
+                        class="flex items-center justify-center space-x-1.5 bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 py-2.5 rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-minus-circle"></i>
+                        <span>Dỡ Tải -25 kPa</span>
+                    </button>
+                </div>
+
+                <!-- Simulation Controls -->
+                <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <button id="btn-auto-run" onclick="toggleAutoRun()"
+                        class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 rounded-xl text-xs shadow-lg shadow-amber-950 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>Tự Động Chạy Thí Nghiệm (Auto-Run)</span>
+                    </button>
+                    <button onclick="resetExperiment()"
+                        class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 border border-slate-700">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Đặt Lại Thí Nghiệm (Reset)</span>
+                    </button>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Main Dashboard & Visuals (8 cols) -->
+        <section class="lg:col-span-8 space-y-6">
+
+            <!-- 2D Canvas Interactive Mechanical Setup (Fig 5.5) -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+                <div class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-cubes text-amber-500 mr-2"></i>
+                        Sơ Đồ 2D Thiết Bị Thí Nghiệm Trong Hố Đào (Hình 5.5 - Giáo Trình)
+                    </h3>
+                    <span id="deformation-phase-badge"
+                        class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700">
+                        Pha I: Nén chặt tuyến tính
+                    </span>
+                </div>
+
+                <!-- Canvas Area -->
+                <div class="relative w-full bg-slate-950" style="height: 350px;">
+                    <canvas id="plt-canvas" class="w-full h-full block"></canvas>
+
+                </div>
+                <!-- Chú thích đặt riêng bên ngoài khung hình thí nghiệm -->
+                <div class="diagram-legend px-4 py-3 border-t border-stone-200 bg-stone-50">
+                    <div class="text-xs font-bold text-stone-700 mb-2">CHÚ THÍCH THIẾT BỊ</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2 text-xs text-stone-600">
+                        <div><strong>(1)</strong> Tấm nén kim loại/BTCT</div>
+                        <div><strong>(2)</strong> Kích thủy lực</div>
+                        <div><strong>(3)</strong> Đồng hồ đo áp lực</div>
+                        <div><strong>(4)</strong> Chuyển vị kế (Biến dạng)</div>
+                        <div><strong>(5)</strong> Dầm dọc tựa kích</div>
+                        <div><strong>(6)</strong> Cọc neo vít &amp; Dầm ngang</div>
+                        <div class="sm:col-span-2"><strong>(7)</strong> Cánh xoắn cọc neo vít cắm trong đất</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Graph and Calculations Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+
+                <!-- Chart Area (7 cols) -->
+                <div class="md:col-span-7 bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col">
+                    <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-chart-line text-amber-500 mr-2"></i>
+                            Đồ Thị Quan Hệ Áp Lực - Độ Lún S = f(P)
+                        </h3>
+                    </div>
+                    <div class="relative flex-1 min-h-[260px]">
+                        <canvas id="ps-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Textbook Engineering Formula Results (5 cols) -->
+                <div
+                    class="md:col-span-5 bg-slate-900 rounded-2xl border border-slate-800 p-4 shadow-xl flex flex-col justify-between space-y-3">
+                    <h3
+                        class="text-xs font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-2 flex items-center">
+                        <i class="fa-solid fa-square-root-variable text-amber-500 mr-2"></i>
+                        Tính Toán Chỉ Tiêu Địa Chất
+                    </h3>
+
+                    <!-- Limit Load I (Puzyrevsky 6.12) -->
+                    <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3">
+                        <div class="text-xs font-bold text-amber-400">Tải Trọng Giới Hạn Thứ I (P<sub>ghI</sub>)</div>
+                        <div class="text-xl font-bold text-amber-200 mt-0.5"><span id="res-pghi">--</span> <span
+                                class="text-xs font-normal text-amber-400">kPa</span></div>
+                        <div class="text-[11px] text-amber-300/70 mt-1">Công thức (6.12) Puzyrevsky - Bắt đầu trượt dẻo
+                        </div>
+                    </div>
+
+                    <!-- Limit Load II (Terzaghi 6.13) -->
+                    <div class="bg-red-950/40 border border-red-800/60 rounded-xl p-3">
+                        <div class="text-xs font-bold text-red-400">Tải Trọng Giới Hạn Thứ II (P<sub>ghII</sub>)</div>
+                        <div class="text-xl font-bold text-red-200 mt-0.5"><span id="res-pghii">--</span> <span
+                                class="text-xs font-normal text-red-400">kPa</span></div>
+                        <div class="text-[11px] text-red-300/70 mt-1">Công thức (6.13) Terzaghi - Sức chịu tải phá hoại
+                        </div>
+                    </div>
+
+                    <!-- Deformation Modulus E (Formula 6.11) -->
+                    <div class="bg-emerald-950/40 border border-emerald-800/60 rounded-xl p-3">
+                        <div class="text-xs font-bold text-emerald-400">Mô Đun Biến Dạng Đất E (Công thức 6.11)</div>
+                        <div class="text-2xl font-bold text-emerald-300 mt-0.5"><span id="res-e-modulus">--</span> <span
+                                class="text-xs font-normal text-emerald-400">MPa</span></div>
+                        <div class="text-[11px] text-emerald-300/70 mt-1">E = (&pi;&middot;D/4) &middot; (1 - &mu;²)
+                            &middot; (&Delta;P / &Delta;S)</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Loading Log Table -->
+            <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+                <div class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-table-list text-amber-500 mr-2"></i>
+                        Bảng Nhật Ký Cấp Tải &amp; Độ Lún Tương Ứng
+                    </h3>
+                    <button onclick="exportDataCSV()"
+                        class="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center space-x-1.5 bg-amber-950/60 px-3 py-1 rounded-lg border border-amber-800 transition">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span>Xuất CSV</span>
+                    </button>
+                </div>
+                <div class="max-h-52 overflow-y-auto custom-scrollbar">
+                    <table class="w-full text-xs text-left text-slate-300">
+                        <thead
+                            class="text-[11px] text-slate-400 uppercase bg-slate-950/90 border-b border-slate-800 sticky top-0 font-bold">
+                            <tr>
+                                <th class="px-4 py-2.5">Cấp #</th>
+                                <th class="px-4 py-2.5">Áp lực P (kPa)</th>
+                                <th class="px-4 py-2.5">Độ lún S (mm)</th>
+                                <th class="px-4 py-2.5">Số gia &Delta;S (mm)</th>
+                                <th class="px-4 py-2.5">Hệ số K<sub>s</sub> (MN/m³)</th>
+                                <th class="px-4 py-2.5">Pha biến dạng nền đất</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-table-body" class="divide-y divide-slate-800/60 font-medium">
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 text-center text-slate-500 italic">Chưa có dữ liệu thí
+                                    nghiệm. Hãy bấm gia tải hoặc chọn Tự Động Chạy.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Engineering Theory Modal -->
+    <div id="theory-modal"
+        class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-slate-900 rounded-2xl max-w-3xl w-full p-6 border border-slate-800 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center">
+                    <i class="fa-solid fa-book-bookmark text-amber-500 mr-2"></i>
+                    Công Thức Tính Toán Giáo Trình Địa Chất Công Trình &amp; TCVN 9354:2012
+                </h3>
+                <button onclick="toggleTheoryModal()" class="text-slate-400 hover:text-white text-lg"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="text-xs text-slate-300 space-y-4 leading-relaxed">
+
+                <!-- Formula 6.11 -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-bold text-amber-400 text-sm">1. Công thức (6.11) - Tính Mô Đun Biến Dạng Đất E:
+                    </div>
+                    <div
+                        class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-center font-bold text-emerald-400 text-sm">
+                        E = (&pi; &middot; D / 4) &middot; (1 - &mu;²) &middot; (&Delta;P / &Delta;S)
+                    </div>
+                    <p class="text-slate-400">Trong đó:</p>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-400">
+                        <li><strong>D</strong>: Đường kính tấm nén tròn (cm).</li>
+                        <li><strong>&mu;</strong>: Hệ số nở hông Poisson của đất đá (0.20 &divide; 0.42).</li>
+                        <li><strong>&Delta;P</strong>: Số gia áp lực tác dụng lên tấm nén đối với đoạn thẳng của đồ thị
+                            S = f(P) (kG/cm² hoặc kPa).</li>
+                        <li><strong>&Delta;S</strong>: Số gia độ lún của tấm nén ứng với khoảng gia tải &Delta;P (cm
+                            hoặc mm).</li>
+                    </ul>
+                </div>
+
+                <!-- Formula 6.12 -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-bold text-amber-400 text-sm">2. Công thức (6.12) - Tải Trọng Giới Hạn Thứ I
+                        (P<sub>ghI</sub> - Puzyrevsky):</div>
+                    <div
+                        class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-center font-bold text-amber-300 text-xs">
+                        P<sub>ghI</sub> = [&pi; &middot; (&gamma;&middot;h + C / tan&phi;)] / [cot&phi; + &phi; -
+                        &pi;/2] + &gamma;&middot;h
+                    </div>
+                    <p class="text-slate-400">Trong đó:</p>
+                    <ul class="list-disc pl-5 space-y-1 text-slate-400">
+                        <li><strong>h</strong>: Chiều sâu đặt tấm nén trong hố đào (m).</li>
+                        <li><strong>&gamma;</strong>: Dung trọng của đất đá tới mức đáy móng (T/m³ hoặc kN/m³).</li>
+                        <li><strong>C</strong>: Lực dính kết của đất đá (T/m² hoặc kPa).</li>
+                        <li><strong>&phi;</strong>: Góc ma sát trong của đất (độ / radian).</li>
+                    </ul>
+                </div>
+
+                <!-- Formula 6.13 -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <div class="font-bold text-amber-400 text-sm">3. Công thức (6.13) - Tải Trọng Giới Hạn Thứ II
+                        (P<sub>ghII</sub> - Terzaghi):</div>
+                    <div
+                        class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-center font-bold text-red-400 text-xs">
+                        P<sub>ghII</sub> = N<sub>&gamma;</sub> &middot; &gamma; &middot; B + N<sub>d</sub> &middot;
+                        &gamma; &middot; h + N<sub>c</sub> &middot; C
+                    </div>
+                    <p class="text-slate-400">Trong đó B = D là bề rộng/đường kính tấm nén. N<sub>&gamma;</sub>,
+                        N<sub>d</sub>, N<sub>c</sub> là các hệ số sức chịu tải của Terzaghi phụ thuộc góc ma sát trong
+                        &phi;.</p>
+                </div>
+
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 flex justify-end">
+                <button onclick="toggleTheoryModal()"
+                    class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition">Đóng
+                    Hướng Dẫn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application -->
+    <script>
+        // --- SOIL PRESETS ---
+        const SOIL_PRESETS = {
+            soft_clay: { gamma: 16.5, cohesion: 10, phi: 6, mu: 0.42 },
+            stiff_clay: { gamma: 18.5, cohesion: 22, phi: 16, mu: 0.35 },
+            loose_sand: { gamma: 17.0, cohesion: 2, phi: 26, mu: 0.32 },
+            medium_sand: { gamma: 19.0, cohesion: 4, phi: 33, mu: 0.30 },
+            gravel: { gamma: 21.0, cohesion: 0, phi: 38, mu: 0.25 }
+        };
+
+        // --- GLOBAL STATE ---
+        let state = {
+            gamma: 18.5,      // kN/m3
+            cohesion: 22,     // kPa
+            phi: 16,          // deg
+            mu: 0.35,         // Poisson
+            h: 1.5,           // m
+            D_cm: 75.6,       // cm
+            currentLoad: 0,   // kPa
+            maxReachedLoad: 0,// kPa
+            currentSettlement: 0, // mm
+            history: [],      // [{ p, s, deltaS, Ks, phase }]
+            isAutoRunning: false,
+            autoTimer: null
+        };
+
+        // DOM Inputs
+        const inputGamma = document.getElementById('input-gamma');
+        const inputCohesion = document.getElementById('input-cohesion');
+        const inputPhi = document.getElementById('input-phi');
+        const inputMu = document.getElementById('input-mu');
+        const inputH = document.getElementById('input-h');
+        const selectD = document.getElementById('select-diameter');
+        const soilPresetSelect = document.getElementById('soil-preset-select');
+
+        // Readout DOMs
+        const currentLoadText = document.getElementById('current-load-text');
+        const currentSettlementText = document.getElementById('current-settlement-text');
+        const deformationPhaseBadge = document.getElementById('deformation-phase-badge');
+        const resPghi = document.getElementById('res-pghi');
+        const resPghii = document.getElementById('res-pghii');
+        const resEModulus = document.getElementById('res-e-modulus');
+        const logTableBody = document.getElementById('log-table-body');
+
+        const canvas = document.getElementById('plt-canvas');
+        const ctx = canvas.getContext('2d');
+        let psChart;
+
+        // --- GEOTECHNICAL FORMULAS (6.11, 6.12, 6.13) ---
+
+        function calculateLimitLoads() {
+            const gamma = state.gamma;   // kN/m3
+            const C = state.cohesion;    // kPa
+            const phiDeg = state.phi;    // deg
+            const h = state.h;           // m
+            const B = state.D_cm / 100;  // m
+
+            const phiRad = (phiDeg * Math.PI) / 180;
+
+            // Formula 6.12: Puzyrevsky P_ghI
+            let P_ghI = 0;
+            if (phiDeg > 0) {
+                const cotPhi = 1 / Math.tan(phiRad);
+                const tanPhi = Math.tan(phiRad);
+                const num = Math.PI * (gamma * h + C / tanPhi);
+                const den = cotPhi + phiRad - Math.PI / 2;
+                P_ghI = (num / den) + gamma * h;
+            } else {
+                P_ghI = (Math.PI + 2) * C + gamma * h;
+            }
+
+            // Formula 6.13: Terzaghi P_ghII
+            let Nd = Math.exp(Math.PI * Math.tan(phiRad)) * Math.pow(Math.tan(Math.PI / 4 + phiRad / 2), 2);
+            let Nc = phiDeg > 0 ? (Nd - 1) / Math.tan(phiRad) : 5.14;
+            let Ngamma = 1.5 * (Nd - 1) * Math.tan(phiRad);
+
+            let P_ghII = Ngamma * gamma * B + Nd * gamma * h + Nc * C;
+
+            return {
+                P_ghI: Math.max(10, Math.round(P_ghI)),
+                P_ghII: Math.max(P_ghI + 20, Math.round(P_ghII))
+            };
+        }
+
+        /**
+         * Calculates Settlement S (mm) based on P, P_ghI, P_ghII
+         * and Formula 6.11: E = (pi * D / 4) * (1 - mu^2) * (Delta P / Delta S)
+         */
+        function calculateSettlement(P) {
+            if (P <= 0) return 0;
+
+            const limits = calculateLimitLoads();
+            const P_ghI = limits.P_ghI;
+            const P_ghII = limits.P_ghII;
+
+            // Base E modulus estimation from soil type
+            const D_cm = state.D_cm;
+            const mu = state.mu;
+
+            // Equivalent E in MPa
+            let baseE_MPa = 12.0;
+            if (state.phi > 30) baseE_MPa = 35.0;
+            else if (state.phi > 20) baseE_MPa = 22.0;
+            else if (state.cohesion > 30) baseE_MPa = 28.0;
+
+            // From Formula 6.11: Delta S = (pi * D_cm / (4 * E_MPa)) * (1 - mu^2) * Delta P_kPa / 100
+            const linearSlope = ((Math.PI * D_cm) / (400 * baseE_MPa)) * (1 - Math.pow(mu, 2)); // mm / kPa
+
+            let S_mm = 0;
+
+            if (P <= P_ghI) {
+                // Phase I: Elastic linear compression
+                S_mm = P * linearSlope;
+            } else if (P <= P_ghII) {
+                // Phase II: Local shear yield
+                const S_ghI = P_ghI * linearSlope;
+                const ratio = (P - P_ghI) / (P_ghII - P_ghI);
+                S_mm = S_ghI + (P - P_ghI) * linearSlope * (1.0 + 3.2 * Math.pow(ratio, 1.8));
+            } else {
+                // Phase III: Punching / General shear failure
+                const S_ghI = P_ghI * linearSlope;
+                const S_ghII = S_ghI + (P_ghII - P_ghI) * linearSlope * 4.2;
+                const excess = (P - P_ghII) / P_ghII;
+                S_mm = S_ghII + (P - P_ghII) * linearSlope * (12.0 + 40.0 * Math.pow(excess, 2));
+            }
+
+            // Unloading hysteresis branch
+            if (P < state.maxReachedLoad) {
+                const maxS = calculateSettlement(state.maxReachedLoad);
+                const elasticRecovery = (state.maxReachedLoad - P) * linearSlope * 0.35;
+                S_mm = Math.max(0, maxS - elasticRecovery);
+            }
+
+            return S_mm;
+        }
+
+        function getDeformationPhase(P) {
+            const limits = calculateLimitLoads();
+            if (P === 0) return { name: "Ban đầu", color: "bg-slate-800 text-slate-300 border-slate-700" };
+            if (P <= limits.P_ghI) return { name: "Pha I: Nén chặt tuyến tính", color: "bg-emerald-950 text-emerald-400 border-emerald-800" };
+            if (P <= limits.P_ghII) return { name: "Pha II: Trượt dẻo cục bộ", color: "bg-amber-950 text-amber-400 border-amber-800" };
+            return { name: "Pha III: Phá hoại / Đẩy trồi", color: "bg-red-950 text-red-400 border-red-800" };
+        }
+
+        // --- CHART INITIALIZATION ---
+        function initChart() {
+            const chartCtx = document.getElementById('ps-chart').getContext('2d');
+            psChart = new Chart(chartCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Đường cong nén tải S = f(P)',
+                        data: [{ x: 0, y: 0 }],
+                        borderColor: '#a17c50',
+                        backgroundColor: 'rgba(161, 124, 80, 0.10)',
+                        borderWidth: 2.5,
+                        pointBackgroundColor: '#8f6d48',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top', // P load at top
+                            title: {
+                                display: true,
+                                text: 'Áp lực nén P (kPa)',
+                                color: '#cbd5e1',
+                                font: { size: 12, family: 'Arial' }
+                            },
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                            min: 0
+                        },
+                        y: {
+                            reverse: true, // S settlement downwards
+                            title: {
+                                display: true,
+                                text: 'Độ lún S (mm)',
+                                color: '#cbd5e1',
+                                font: { size: 12, family: 'Arial' }
+                            },
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(51, 65, 85, 0.4)' },
+                            min: 0
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `Áp lực P: ${ctx.parsed.x} kPa | Độ lún S: ${ctx.parsed.y.toFixed(2)} mm`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- ACTIONS & CONTROLLERS ---
+
+        function readInputs() {
+            state.gamma = parseFloat(inputGamma.value) || 18.5;
+            state.cohesion = parseFloat(inputCohesion.value) || 0;
+            state.phi = parseFloat(inputPhi.value) || 0;
+            state.mu = parseFloat(inputMu.value) || 0.3;
+            state.h = parseFloat(inputH.value) || 1.5;
+            state.D_cm = parseFloat(selectD.value) || 75.6;
+        }
+
+        function applyLoadStep(targetP) {
+            if (state.isAutoRunning) stopAutoRun();
+            setLoad(targetP);
+        }
+
+        function adjustLoad(deltaP) {
+            if (state.isAutoRunning) stopAutoRun();
+            setLoad(Math.max(0, state.currentLoad + deltaP));
+        }
+
+        function setLoad(p) {
+            readInputs();
+            const prevS = state.currentSettlement;
+            state.currentLoad = Math.round(p);
+
+            if (state.currentLoad > state.maxReachedLoad) {
+                state.maxReachedLoad = state.currentLoad;
+            }
+
+            state.currentSettlement = calculateSettlement(state.currentLoad);
+            const deltaS = Math.max(0, state.currentSettlement - prevS);
+            const Ks = state.currentSettlement > 0 ? (state.currentLoad / state.currentSettlement) : 0;
+            const phase = getDeformationPhase(state.currentLoad);
+
+            state.history.push({
+                p: state.currentLoad,
+                s: state.currentSettlement,
+                deltaS,
+                Ks,
+                phase: phase.name
+            });
+
+            updateUI();
+        }
+
+        function toggleAutoRun() {
+            if (state.isAutoRunning) stopAutoRun();
+            else startAutoRun();
+        }
+
+        function startAutoRun() {
+            resetExperiment();
+            state.isAutoRunning = true;
+            const btn = document.getElementById('btn-auto-run');
+            btn.innerHTML = `<i class="fa-solid fa-square"></i><span>Dừng Thí Nghiệm</span>`;
+            btn.classList.replace('bg-amber-600', 'bg-red-600');
+
+            const limits = calculateLimitLoads();
+            const maxP = Math.round(limits.P_ghII * 1.2);
+            const step = Math.round(maxP / 10);
+            let currentP = 0;
+
+            state.autoTimer = setInterval(() => {
+                if (currentP <= maxP) {
+                    setLoad(currentP);
+                    currentP += step;
+                } else {
+                    stopAutoRun();
+                }
+            }, 800);
+        }
+
+        function stopAutoRun() {
+            state.isAutoRunning = false;
+            if (state.autoTimer) clearInterval(state.autoTimer);
+            const btn = document.getElementById('btn-auto-run');
+            btn.innerHTML = `<i class="fa-solid fa-play"></i><span>Tự Động Chạy Thí Nghiệm (Auto-Run)</span>`;
+            btn.classList.replace('bg-red-600', 'bg-amber-600');
+        }
+
+        function resetExperiment() {
+            stopAutoRun();
+            readInputs();
+            state.currentLoad = 0;
+            state.maxReachedLoad = 0;
+            state.currentSettlement = 0;
+            state.history = [{ p: 0, s: 0, deltaS: 0, Ks: 0, phase: "Ban đầu" }];
+            updateUI();
+        }
+
+        function updateUI() {
+            readInputs();
+            currentLoadText.innerText = state.currentLoad;
+            currentSettlementText.innerText = `${state.currentSettlement.toFixed(2)} mm`;
+
+            const phase = getDeformationPhase(state.currentLoad);
+            deformationPhaseBadge.innerText = phase.name;
+            deformationPhaseBadge.className = `px-3 py-1 rounded-full text-xs font-bold border ${phase.color}`;
+
+            // Limit loads calculations
+            const limits = calculateLimitLoads();
+            resPghi.innerText = limits.P_ghI;
+            resPghii.innerText = limits.P_ghII;
+
+            // Calculate E Modulus via Formula 6.11
+            let E_calc = 0;
+            if (limits.P_ghI > 0) {
+                const S_at_Pghi = calculateSettlement(limits.P_ghI);
+                if (S_at_Pghi > 0) {
+                    // E = (pi * D_cm / 400) * (1 - mu^2) * (Delta P / Delta S)
+                    E_calc = ((Math.PI * state.D_cm) / 400) * (1 - Math.pow(state.mu, 2)) * (limits.P_ghI / S_at_Pghi);
+                }
+            }
+            resEModulus.innerText = E_calc > 0 ? E_calc.toFixed(2) : "--";
+
+            // Update Chart
+            psChart.data.datasets[0].data = state.history.map(h => ({ x: h.p, y: h.s }));
+            const maxS = Math.max(...state.history.map(h => h.s), 10);
+            const maxP = Math.max(...state.history.map(h => h.p), limits.P_ghII);
+            psChart.options.scales.y.max = Math.ceil(maxS * 1.25);
+            psChart.options.scales.x.max = Math.ceil(maxP * 1.15);
+            psChart.update();
+
+            renderTable();
+            drawCanvas();
+        }
+
+        function renderTable() {
+            if (state.history.length <= 1) {
+                logTableBody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-500 italic">Chưa có dữ liệu thí nghiệm. Hãy bấm gia tải hoặc chọn Tự Động Chạy.</td></tr>`;
+                return;
+            }
+
+            logTableBody.innerHTML = state.history.map((h, i) => `
+                <tr class="hover:bg-slate-800/50 transition">
+                    <td class="px-4 py-2 text-slate-400 font-bold">#${i}</td>
+                    <td class="px-4 py-2 font-bold text-white">${h.p}</td>
+                    <td class="px-4 py-2 text-emerald-400 font-bold">${h.s.toFixed(2)}</td>
+                    <td class="px-4 py-2 text-slate-300">${h.deltaS.toFixed(2)}</td>
+                    <td class="px-4 py-2 text-slate-300">${h.Ks > 0 ? h.Ks.toFixed(2) : '-'}</td>
+                    <td class="px-4 py-2 text-xs font-semibold">${h.phase}</td>
+                </tr>
+            `).join('');
+        }
+
+        // --- 2D CANVAS EXCAVATION PIT & SCREW ANCHOR SETUP (FIG 5.5) ---
+        function drawCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+
+            ctx.save();
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            const w = rect.width;
+            const h = rect.height;
+
+            // Background
+            ctx.fillStyle = "#f4f3ef";
+            ctx.fillRect(0, 0, w, h);
+
+            // Ground Surface Line
+            const groundY = 80;
+            const pitDepthPx = 90;
+            const pitBottomY = groundY + pitDepthPx;
+            const pitWidthPx = 220;
+            const pitLeftX = (w - pitWidthPx) / 2;
+            const pitRightX = pitLeftX + pitWidthPx;
+
+            // 1. Natural Soil Mass Background
+            ctx.fillStyle = "#d8d4ca";
+            ctx.fillRect(0, groundY, w, h - groundY);
+
+            // Excavation Pit Cavity Cutout (Hố Đào)
+            ctx.fillStyle = "#f4f3ef";
+            ctx.beginPath();
+            ctx.moveTo(pitLeftX, groundY);
+            ctx.lineTo(pitLeftX, pitBottomY);
+            ctx.lineTo(pitRightX, pitBottomY);
+            ctx.lineTo(pitRightX, groundY);
+            ctx.fill();
+
+            // Pit Wall Hatching Lines (Gia cố / Thành hố đào)
+            ctx.strokeStyle = "#aaa69d";
+            ctx.lineWidth = 1.5;
+            // Left pit wall
+            ctx.beginPath();
+            ctx.moveTo(pitLeftX, groundY);
+            ctx.lineTo(pitLeftX, pitBottomY);
+            ctx.stroke();
+            // Right pit wall
+            ctx.beginPath();
+            ctx.moveTo(pitRightX, groundY);
+            ctx.lineTo(pitRightX, pitBottomY);
+            ctx.stroke();
+
+            // Pit hatching details
+            ctx.strokeStyle = "rgba(110, 105, 95, 0.28)";
+            ctx.lineWidth = 1;
+            for (let y = groundY + 5; y < pitBottomY; y += 12) {
+                ctx.beginPath();
+                ctx.moveTo(pitLeftX - 8, y);
+                ctx.lineTo(pitLeftX, y + 6);
+                ctx.moveTo(pitRightX, y);
+                ctx.lineTo(pitRightX + 8, y + 6);
+                ctx.stroke();
+            }
+
+            // Plate Settlement offset
+            const visualS = state.currentSettlement * 1.8;
+            const plateY = pitBottomY + visualS;
+            const plateW = Math.max(80, Math.min(160, state.D_cm * 1.5));
+            const centerX = w / 2;
+
+            // 2. DYNAMIC STRESS BULB & SHEAR SLIP ARCS UNDER PLATE
+            if (state.currentLoad > 0) {
+                const limits = calculateLimitLoads();
+                const ratio = state.currentLoad / limits.P_ghII;
+                const bulbDepth = plateW * (0.9 + ratio * 1.1);
+                const bulbWidth = plateW * (1.0 + ratio * 0.8);
+
+                const grad = ctx.createRadialGradient(
+                    centerX, plateY, 3,
+                    centerX, plateY + bulbDepth * 0.4, bulbDepth
+                );
+                grad.addColorStop(0, "rgba(166, 106, 97, 0.48)");
+                grad.addColorStop(0.5, "rgba(161, 124, 80, 0.28)");
+                grad.addColorStop(1, "rgba(88, 118, 95, 0)");
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.ellipse(centerX, plateY + bulbDepth / 2, bulbWidth / 2, bulbDepth / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Failure shear lines if P > P_ghI
+                if (state.currentLoad > limits.P_ghI) {
+                    ctx.strokeStyle = "rgba(166, 106, 97, 0.75)";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 3]);
+
+                    // Left shear slip curve
+                    ctx.beginPath();
+                    ctx.arc(centerX - plateW / 2, plateY, plateW * 0.6, 0.1 * Math.PI, 0.65 * Math.PI);
+                    ctx.stroke();
+
+                    // Right shear slip curve
+                    ctx.beginPath();
+                    ctx.arc(centerX + plateW / 2, plateY, plateW * 0.6, 0.35 * Math.PI, 0.9 * Math.PI);
+                    ctx.stroke();
+
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // 3. (1) LOADING PLATE (Tấm nén) at Pit Bottom
+            const plateH = 14;
+            ctx.fillStyle = "#718b91"; // Steel blue
+            ctx.beginPath();
+            ctx.roundRect(centerX - plateW / 2, plateY - plateH, plateW, plateH, 3);
+            ctx.fill();
+            ctx.strokeStyle = "#91a6a8";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Label (1)
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 11px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("1", centerX, plateY - 4);
+
+            // 4. (2) HYDRAULIC JACK (Kích thủy lực)
+            const jackW = 38;
+            const jackH = 48;
+            const jackX = centerX - jackW / 2;
+            const jackY = plateY - plateH - jackH;
+
+            ctx.fillStyle = "#a66a61"; // Red Hydraulic Jack
+            ctx.fillRect(jackX, jackY, jackW, jackH);
+            ctx.strokeStyle = "#b77b70";
+            ctx.strokeRect(jackX, jackY, jackW, jackH);
+
+            // Piston Rod extending to reaction beam
+            const mainBeamY = 45;
+            ctx.fillStyle = "#777e80";
+            ctx.fillRect(centerX - 8, mainBeamY + 18, 16, jackY - (mainBeamY + 18));
+
+            // Label (2)
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("2", centerX, jackY + jackH / 2 + 4);
+
+            // 5. (3) PRESSURE GAUGE (Đồng hồ đo áp lực)
+            const gaugeX = centerX + jackW / 2 + 14;
+            const gaugeY = jackY + 18;
+            ctx.fillStyle = "#718b91";
+            ctx.beginPath();
+            ctx.arc(gaugeX, gaugeY, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Needle
+            const angle = -Math.PI / 2 + (state.currentLoad / 500) * Math.PI * 1.5;
+            ctx.beginPath();
+            ctx.moveTo(gaugeX, gaugeY);
+            ctx.lineTo(gaugeX + Math.cos(angle) * 8, gaugeY + Math.sin(angle) * 8);
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+
+            // Label (3)
+            ctx.fillStyle = "#91a6a8";
+            ctx.fillText("3", gaugeX + 16, gaugeY + 4);
+
+            // 6. (4) DIAL DEFORMATION GAUGES (Chuyển vị kế / Đồng hồ đo biến dạng)
+            drawDialGauge(ctx, centerX - plateW / 2 + 12, plateY - plateH, "4");
+            drawDialGauge(ctx, centerX + plateW / 2 - 12, plateY - plateH, "4");
+
+            // 7. (5) MAIN REACTION BEAM (Dầm dọc tựa kích)
+            const beamW = w - 80;
+            const beamX = (w - beamW) / 2;
+            ctx.fillStyle = "#777f80"; // I-beam steel
+            ctx.fillRect(beamX, mainBeamY, beamW, 18);
+            ctx.strokeStyle = "#9ca1a0";
+            ctx.strokeRect(beamX, mainBeamY, beamW, 18);
+
+            // Label (5)
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("5", centerX, mainBeamY + 13);
+
+            // 8. (6) ANCHOR RODS & TRANSVERSE BEAMS (Cọc neo vít & Dầm ngang)
+            const leftRodX = pitLeftX - 35;
+            const rightRodX = pitRightX + 35;
+
+            // Anchor rods passing through reaction beam
+            ctx.strokeStyle = "#777e80";
+            ctx.lineWidth = 3;
+
+            // Left Rod
+            ctx.beginPath();
+            ctx.moveTo(leftRodX, mainBeamY - 12);
+            ctx.lineTo(leftRodX, h - 20);
+            ctx.stroke();
+
+            // Right Rod
+            ctx.beginPath();
+            ctx.moveTo(rightRodX, mainBeamY - 12);
+            ctx.lineTo(rightRodX, h - 20);
+            ctx.stroke();
+
+            // Label (6)
+            ctx.fillStyle = "#a17c50";
+            ctx.fillText("6", leftRodX + 10, mainBeamY - 4);
+            ctx.fillText("6", rightRodX + 10, mainBeamY - 4);
+
+            // 9. (7) SPIRAL HELICAL ANCHOR BLADES (Cánh xoắn cọc neo vít cắm trong đất)
+            drawSpiralAnchor(ctx, leftRodX, groundY + 40, h - 30);
+            drawSpiralAnchor(ctx, rightRodX, groundY + 40, h - 30);
+
+            // Label (7)
+            ctx.fillStyle = "#a17c50";
+            ctx.fillText("7", leftRodX - 16, h - 45);
+            ctx.fillText("7", rightRodX + 16, h - 45);
+
+            ctx.restore();
+        }
+
+        function drawDialGauge(context, x, plateTopY, label) {
+            const gaugeY = plateTopY - 25;
+            // Rod
+            context.strokeStyle = "#777e80";
+            context.lineWidth = 1.5;
+            context.beginPath();
+            context.moveTo(x, gaugeY);
+            context.lineTo(x, plateTopY);
+            context.stroke();
+
+            // Circle
+            context.fillStyle = "#ffffff";
+            context.beginPath();
+            context.arc(x, gaugeY - 10, 8, 0, Math.PI * 2);
+            context.fill();
+            context.strokeStyle = "#0f172a";
+            context.stroke();
+
+            // Label (4)
+            context.fillStyle = "#a17c50";
+            context.font = "bold 11px Arial";
+            context.fillText(label, x > canvas.width / 2 ? x + 14 : x - 14, gaugeY - 8);
+        }
+
+        function drawSpiralAnchor(context, x, startY, endY) {
+            context.strokeStyle = "#a17c50"; // Spiral blade color
+            context.lineWidth = 2;
+            context.beginPath();
+            for (let y = startY; y <= endY; y += 4) {
+                const angle = (y - startY) * 0.25;
+                const offset = Math.sin(angle) * 18;
+                if (y === startY) context.moveTo(x + offset, y);
+                else context.lineTo(x + offset, y);
+            }
+            context.stroke();
+        }
+
+        function exportDataCSV() {
+            if (state.history.length <= 1) {
+                alert("Chưa có dữ liệu thí nghiệm để xuất CSV!");
+                return;
+            }
+
+            let csv = "data:text/csv;charset=utf-8,";
+            csv += "Cap_Thu,Ap_Luc_P_kPa,Do_Lun_S_mm,So_Gia_dS_mm,He_So_Ks_MNm3,Pha_Bien_Dang\n";
+
+            state.history.forEach((h, i) => {
+                csv += `${i},${h.p},${h.s.toFixed(3)},${h.deltaS.toFixed(3)},${h.Ks.toFixed(2)},"${h.phase}"\n`;
+            });
+
+            const uri = encodeURI(csv);
+            const a = document.createElement('a');
+            a.href = uri;
+            a.download = `Thi_Nghiem_Ban_Nen_TCVN9354_${new Date().getTime()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function toggleTheoryModal() {
+            document.getElementById('theory-modal').classList.toggle('hidden');
+        }
+
+        // --- INIT EVENT LISTENERS ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+
+            // Preset soil select listener
+            soilPresetSelect.addEventListener('change', (e) => {
+                const preset = SOIL_PRESETS[e.target.value];
+                if (preset) {
+                    inputGamma.value = preset.gamma;
+                    inputCohesion.value = preset.cohesion;
+                    inputPhi.value = preset.phi;
+                    inputMu.value = preset.mu;
+                    resetExperiment();
+                }
+            });
+
+            // Live inputs change
+            [inputGamma, inputCohesion, inputPhi, inputMu, inputH, selectD].forEach(elem => {
+                elem.addEventListener('change', () => resetExperiment());
+            });
+
+            window.addEventListener('resize', () => drawCanvas());
+
+            resetExperiment();
+        });
+    </script>
+</body>
+
+</html>
